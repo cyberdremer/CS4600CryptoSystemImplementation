@@ -14,9 +14,7 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         Scanner keyboardInput = new Scanner(System.in);
-        File publicKeyFile, privateKeyFile;
         int userChoice;
-        byte[] publicKeyBytes, privateKeyBytes;
         System.out.println("What operation would you like to do?" +
                 "\nLoad in a key-pair? (1)" +
                 "\nGenerate a new key-pair (2)" +
@@ -152,10 +150,7 @@ public class Main {
     }
 
 
-    public static void encryptFile(File file){
 
-
-    }
 
 
     }
