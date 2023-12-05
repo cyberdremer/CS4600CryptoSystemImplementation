@@ -2,14 +2,17 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
+import java.security.spec.EncodedKeySpec;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Scanner;
 
 public class RSAUtility {
 
@@ -50,5 +53,84 @@ public class RSAUtility {
             fos.write(decryptedFileBytes);
         }
 
+    }
+
+    public static void writeOutKeys(Person person) throws FileNotFoundException {
+        try(FileOutputStream fos = new FileOutputStream("public.key")){
+            fos.write(person.returnPublicKey().getEncoded());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        try(FileOutputStream fos = new FileOutputStream("private.key")){
+            fos.write(person.returnPrivateKey().getEncoded());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    /**
+     * \Takes in user input to load in a file containing the public key for the RSA encryption scheme.
+     * @param keyboardInput
+     * @return PublicKey object
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     */
+
+
+    public static PublicKey loadInPublicKey(Scanner keyboardInput) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        File keyFile;
+        byte[] publicKeyBytes;
+        String keyFileDirectory;
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        System.out.println("Enter the file directory of the key file");
+        keyFileDirectory = keyboardInput.nextLine();
+        keyFile = new File(keyFileDirectory);
+        if (keyFile.isFile()) {
+            publicKeyBytes = Files.readAllBytes(keyFile.toPath());
+            EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
+            PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
+            return publicKey;
+
+
+
+        } else {
+            throw new FileNotFoundException();
+
+        }
+    }
+
+    /**
+     * Takes in user input to load in a file containing the private key for the RSA encryption scheme.
+     * @param keyboardInput Scanner object
+     * @return PrivateKey object
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     */
+
+
+    public static PrivateKey loadInPrivateKey(Scanner keyboardInput) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        File keyFile;
+        byte[] publicKeyBytes;
+        String keyFileDirectory;
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        System.out.println("Enter the file directory of the key file");
+        keyFileDirectory = keyboardInput.nextLine();
+        keyFile = new File(keyFileDirectory);
+        if (keyFile.isFile()) {
+            publicKeyBytes = Files.readAllBytes(keyFile.toPath());
+            EncodedKeySpec privateKeySpec = new X509EncodedKeySpec(publicKeyBytes);
+            PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
+
+            return privateKey;
+
+
+        } else {
+            throw new FileNotFoundException();
+
+        }
     }
 }
