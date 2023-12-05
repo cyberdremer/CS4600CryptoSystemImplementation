@@ -68,6 +68,9 @@ public class AES256Utility {
 
         byte[] buffer = new byte[64];
         int bytesRead;
+        /*
+        * Read in bytes into a buffer to ensure performance isn't destroyed by reading in an entire file all at once.
+        * */
         while ( (bytesRead = fis.read(buffer)) != -1){
             byte[] output = encryptionCipher.update(buffer, 0, bytesRead);
             if (output != null){

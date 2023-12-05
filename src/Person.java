@@ -1,4 +1,5 @@
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import java.security.*;
 import java.security.spec.RSAPrivateKeySpec;
 
@@ -16,6 +17,8 @@ public class Person {
 
 
     private SecretKey AES256Key;
+
+    public IvParameterSpec IV;
 
 
     /** This Person constructor is used when there is no existing RSA private and public key pair for this person.

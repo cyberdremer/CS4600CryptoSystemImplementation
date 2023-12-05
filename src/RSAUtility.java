@@ -114,15 +114,15 @@ public class RSAUtility {
 
     public static PrivateKey loadInPrivateKey(Scanner keyboardInput) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         File keyFile;
-        byte[] publicKeyBytes;
+        byte[] privateKeyBytes;
         String keyFileDirectory;
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         System.out.println("Enter the file directory of the key file");
         keyFileDirectory = keyboardInput.nextLine();
         keyFile = new File(keyFileDirectory);
         if (keyFile.isFile()) {
-            publicKeyBytes = Files.readAllBytes(keyFile.toPath());
-            EncodedKeySpec privateKeySpec = new X509EncodedKeySpec(publicKeyBytes);
+            privateKeyBytes = Files.readAllBytes(keyFile.toPath());
+            EncodedKeySpec privateKeySpec = new X509EncodedKeySpec(privateKeyBytes);
             PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
 
             return privateKey;
