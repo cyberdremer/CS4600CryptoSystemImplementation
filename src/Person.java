@@ -1,3 +1,4 @@
+import javax.crypto.SecretKey;
 import java.security.*;
 import java.security.spec.RSAPrivateKeySpec;
 
@@ -12,6 +13,9 @@ public class Person {
 
     //RSA Private key pair
     private PrivateKey privKey;
+
+
+    private SecretKey AES256Key;
 
 
     /** This Person constructor is used when there is no existing RSA private and public key pair for this person.
@@ -50,6 +54,11 @@ public class Person {
 
     public PublicKey returnPublicKey(){
         return this.pubKey;
+    }
+
+
+    public void setAES256Key(){
+
     }
 
 
