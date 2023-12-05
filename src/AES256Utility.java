@@ -130,6 +130,24 @@ public class AES256Utility {
 
     }
 
+    public void writeOutIV(IvParameterSpec IV){
+        try {
+            FileOutputStream fos = new FileOutputStream("IV.txt");
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            bos.write(IV.getIV());
+
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    public byte[] readInIV(){
+
+    }
+
 
 
 }
