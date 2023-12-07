@@ -1,8 +1,11 @@
+
+
 import javax.crypto.*;
 import javax.crypto.interfaces.PBEKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.swing.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -11,20 +14,25 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.Base64;
 
 /**
  * Class that will encapsulate the operations used by the AES algorithm in order to encrypt and decrypt a text file.
  */
 public class AES256Utility {
 
-    public static SecretKey generateSecretKeyWithPassword(String password, String salt, int nAesBits) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(password.toCharArray(),salt.getBytes(), 65536, nAesBits);
-        SecretKey secretKey = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
-        /*
-        * TODO Add a function that writes out the salt
-        * */
-        return secretKey;
+    /**
+     * Generates an AES key based on the desired size.
+     * @param nAesBits the number of bits desired for the AES Key.
+     * @returns The generated AES key.
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeySpecException
+     */
+    public static SecretKey generateAESKey(int nAesBits) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        KeyGenerator kg = KeyGenerator.getInstance("AES");
+        kg.init(nAesBits);
+        SecretKey key = kg.generateKey();
+        return key;
 
 
     }
@@ -32,112 +40,29 @@ public class AES256Utility {
 
     /**
      * Generate an IV that is going to be used for AES encryption
-     * @return IvParameterSpec
+     * @return The generated IV.
      */
     public static IvParameterSpec generateIV(){
         byte[] IV = new byte[16];
         new SecureRandom().nextBytes(IV);
         return new IvParameterSpec(IV);
-        /*
-         * TODO Add a function that writes out the IV
-         * */
     }
 
 
     /**
-     * Takes in an inputFile and decrypts the file, the outputFile is the file that gets encrypted.
-     * @param algorithm The algorithm we want to use to encrypt.
-     * @param key The key we are using for encryption.
-     * @param IV The initialization vector.
-     * @param inputFile
-     * @param outputFile
-     * @throws InvalidAlgorithmParameterException
-     * @throws InvalidKeyException
-     * @throws NoSuchPaddingException
-     * @throws NoSuchAlgorithmException
-     * @throws IOException
-     * @throws IllegalBlockSizeException
-     * @throws BadPaddingException
+     * Write out the IV to a file so that it can be used again in order to decrypt.
+     * Creates a file with the "IV.txt" ending to signify it is an IV file.
+     * @param IV The IvParameterSpec we would like to use to write out its bits.
      */
-    public static void encryptFile(String algorithm, SecretKey key, IvParameterSpec IV, File inputFile, File outputFile) throws InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, IOException, IllegalBlockSizeException, BadPaddingException {
+    public static void writeOutIV(byte[] IV, String fileName, String directory){
 
-        Cipher encryptionCipher = Cipher.getInstance(algorithm);
-        encryptionCipher.init(Cipher.ENCRYPT_MODE, key, IV);
-        FileInputStream fis = new FileInputStream(inputFile);
-        FileOutputStream fos = new FileOutputStream(outputFile);
-
-        byte[] buffer = new byte[64];
-        int bytesRead;
-        /*
-        * Read in bytes into a buffer to ensure performance isn't destroyed by reading in an entire file all at once.
-        * */
-        while ( (bytesRead = fis.read(buffer)) != -1){
-            byte[] output = encryptionCipher.update(buffer, 0, bytesRead);
-            if (output != null){
-                fos.write(output);
-            }
-        }
-
-        byte[] outputBytes = encryptionCipher.doFinal();
-        if (outputBytes != null){
-            fos.write(outputBytes);
-        }
-
-        fis.close();
-        fos.close();
-
-
-
-
-    }
-
-    /**
-     * Takes in an inputFile and decrypts the file, the outputFile is the file that gets encrypted.
-     * @param algorithm The algorithm used for encryption.
-     * @param key The key used for encryption.
-     * @param IV The initialization vector used for encryption.
-     * @param inputStream The input file.
-     * @param outputStream The output file.
-     * @throws NoSuchPaddingException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidAlgorithmParameterException
-     * @throws InvalidKeyException
-     * @throws IOException
-     * @throws IllegalBlockSizeException
-     * @throws BadPaddingException
-     */
-    public static void decryptFile(String algorithm, SecretKey key, IvParameterSpec IV, File inputStream, File outputStream) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException {
-        Cipher decryptionCipher = Cipher.getInstance(algorithm);
-        decryptionCipher.init(Cipher.DECRYPT_MODE, key, IV);
-        FileInputStream fis = new FileInputStream(inputStream);
-        FileOutputStream fos = new FileOutputStream(outputStream);
-
-        byte[] buffer = new byte[64];
-        int bytesRead;
-        while ( (bytesRead = fis.read(buffer)) != -1){
-            byte[] output = decryptionCipher.update(buffer, 0, bytesRead);
-            if (output != null){
-                fos.write(output);
-            }
-        }
-
-        byte[] outputBytes = decryptionCipher.doFinal();
-        if (outputBytes != null){
-            fos.write(outputBytes);
-        }
-
-        fis.close();
-        fos.close();
-
-
-
-    }
-
-    public void writeOutIV(IvParameterSpec IV){
         try {
-            FileOutputStream fos = new FileOutputStream("IV.txt");
+            String finalLocationName = directory + "\\" + fileName + "IV.txt";
+            File IVFile = new File(finalLocationName);
+            FileOutputStream fos = new FileOutputStream(IVFile);
             BufferedOutputStream bos = new BufferedOutputStream(fos);
-            bos.write(IV.getIV());
+            bos.write(IV);
+            bos.close();
 
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
@@ -147,9 +72,35 @@ public class AES256Utility {
 
     }
 
-    public byte[] readInIV(){
+    /**
+     * Opens a file at the given directory and then reads in the bits needed for an IV from the file.
+     * @param directory The location of the IV.
+     * @return The read in IV.
+     */
+    public static IvParameterSpec readInIV(String directory){
+        try {
+            byte[] IVBytes = new byte[16];
+
+            File IVFile = new File(directory);
+            DataInputStream dis = new DataInputStream(new FileInputStream(IVFile));
+            dis.readFully(IVBytes);
+            if (dis != null){
+                dis.close();
+            }
+
+            IvParameterSpec returnIV = new IvParameterSpec(IVBytes);
+            return returnIV;
+
+
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
     }
+
+
 
 
 
